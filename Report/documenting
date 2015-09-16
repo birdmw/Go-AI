@@ -1,0 +1,11 @@
+Day 1 - found repo of 50K games
+Day 2 - found sgfsummary.py, an old program I can borrow code from. Will search for more similar programs.
+Day 3 - Abandoned sgfsummary.py in favor of doing own method. Will extract game info first into pandas
+Day 4 - today I will try to parse on this expression: ; or (space/tab/newline/empty char)
+	using regex to fo a lazy search ABC(\[.+?\]) to parse information
+day 5 - installed gomill 0.7.4 from Matthew Woodcraft at MIT 2014-12-05. This should allow sgf conversion to game states
+
+
+day 1 real project:
+	now have 225k games, of which 50k are pro vs. pro, the rest are 6d+
+	training a model on each # of moves up to 10 today. Then tomorrow I will use each trained 		model to build a pipeline of games
