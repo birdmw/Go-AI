@@ -131,5 +131,5 @@ def build_pickle_game_depth_range(a, b):
         pickle.dump( train, open( "trainmove"+str(master_index)+".pkl", "wb" ) )
         pickle.dump( test, open( "testmove"+str(master_index)+".pkl", "wb" ) )
         print "Done!", master_index
-build_pickle_game_depth_range(15, 20)   
+build_pickle_game_depth_range(17, 21)   
 print "===========COMPLETE==========="

@@ -30,6 +30,7 @@ for i in range(19):
             for j in range(19):
                 points[(i, j)] = '0'
 universal_cols = sorted(properties.keys())+sorted(points.keys())
+print universal_cols[:40]
 
 def select_files(root, files):
     """
@@ -135,80 +136,79 @@ def build_game_data(a, b):
 
 
 def build_models(a, b):
-	for move_number in range(a,b):
-		print "building model for move number", move_number,"..."
-		train = np.array( pickle.load( open( "trainmove"+str(move_number)+".pkl", "rb" ) ) )
-		test = np.array( pickle.load( open( "testmove"+str(move_number)+".pkl", "rb" ) ) )
-		columns = universal_cols[6:]
+    for move_number in range(a,b):
+        print "building model for move number", move_number,"..."
 
-		X_train = train[:,6:]
-		X_test = test[:,6:]
-		y_train = train[:,2]
-		y_test = test[:,2]
+        train = np.array( pickle.load( open( "trainmove"+str(move_number)+".pkl", "rb" ) ) )
+        test = np.array( pickle.load( open( "testmove"+str(move_number)+".pkl", "rb" ) ) )
+        columns = universal_cols[6:]
+        X_train = train[:,6:]
+        X_test = test[:,6:]
+        y_train = train[:,universal_cols.index('RE')]
+        y_test = test[:,universal_cols.index('RE')]
 
-		y_train[y_train=='w']=1.
-		y_train[y_train=='b']=0.
-		y_test[y_test=='w']=1.
-		y_test[y_test=='b']=0.
+        y_train[y_train=='w']=1.
+        y_train[y_train=='b']=0.
+        y_test[y_test=='w']=1.
+        y_test[y_test=='b']=0.
 
-		for row in X_train:
-		    row[row=='w'] = 1.
-		    row[row=='0'] = .5
-		    row[row=='b'] = 0.
-		    row = row.astype(float)
-		    
-		for row in X_test:
-		    row[row=='w'] = 1.
-		    row[row=='0'] = .5
-		    row[row=='b'] = 0.
-		    row = row.astype(float)
+        for row in X_train:
+            row[row=='w'] = 1.
+            row[row=='0'] = .5
+            row[row=='b'] = 0.
+            row = row.astype(float)
 
-		X_train=X_train.astype(float)
-		X_test=X_test.astype(float)
+        for row in X_test:
+            row[row=='w'] = 1.
+            row[row=='0'] = .5
+            row[row=='b'] = 0.
+            row = row.astype(float)
 
-		y_train=y_train.astype(float)
-		y_test=y_test.astype(float)
+        X_train=X_train.astype(float)
+        X_test=X_test.astype(float)
 
-		RFC = RandomForestClassifier(n_jobs=-1)
-		GBC = GradientBoostingClassifier()
-		LR = LogisticRegression()
-		ADA = AdaBoostClassifier()
+        y_train=y_train.astype(float)
+        y_test=y_test.astype(float)
 
-		RFC_model = RFC.fit(X_train, y_train)
-		print "RFC done"
-		GBC_model = GBC.fit(X_train, y_train)
-		print "GBC done"
-		LR_model = LR.fit(X_train, y_train)
-		print "LR done"
-		ADA_model = ADA.fit(X_train, y_train)
-		print "ADA done"
+        RFC = RandomForestClassifier(n_jobs=-1)
+        GBC = GradientBoostingClassifier()
+        LR = LogisticRegression()
+        ADA = AdaBoostClassifier()
 
-		print "===== models for", move_number,"COMPLETE ====="
+        RFC_model = RFC.fit(X_train, y_train)
+        print "RFC fit"
+        GBC_model = GBC.fit(X_train, y_train)
+        print "GBC fit"
+        LR_model = LR.fit(X_train, y_train)
+        print "LR fit"
+        ADA_model = ADA.fit(X_train, y_train)
+        print "ADA fit"
 
-		RFC_y_pred = RFC_model.predict(X_test)
-		GBC_y_pred = GBC_model.predict(X_test)
-		LR_y_pred = LR_model.predict(X_test)
-		ADA_y_pred = ADA_model.predict(X_test)
+        print "===== models for", move_number,"COMPLETE ====="
 
-		RFC_roc_auc = roc_auc_score(y_test, RFC_y_pred)
-		GBC_roc_auc = roc_auc_score(y_test, GBC_y_pred)
-		LR_roc_auc  = roc_auc_score(y_test, LR_y_pred)
-		ADA_roc_auc = roc_auc_score(y_test, ADA_y_pred)
+        RFC_y_pred = RFC_model.predict(X_test)
+        GBC_y_pred = GBC_model.predict(X_test)
+        LR_y_pred = LR_model.predict(X_test)
+        ADA_y_pred = ADA_model.predict(X_test)
 
-		print "RandomForestClassifier roc_auc:", RFC_roc_auc
-		print "GradientBoostingClassifier roc_auc:", GBC_roc_auc
-		print "LogisticRegression roc_auc:", LR_roc_auc
-		print "AdaBoostClassifier roc_auc:", ADA_roc_auc
+        RFC_roc_auc = roc_auc_score(y_test, RFC_y_pred)
+        GBC_roc_auc = roc_auc_score(y_test, GBC_y_pred)
+        LR_roc_auc  = roc_auc_score(y_test, LR_y_pred)
+        ADA_roc_auc = roc_auc_score(y_test, ADA_y_pred)
 
-		roc_aucs = [RFC_roc_auc, GBC_roc_auc, LR_roc_auc, ADA_roc_auc]
-		models = [RFC_model, GBC_model, LR_model, ADA_model]
+        print "RandomForestClassifier roc_auc:", RFC_roc_auc
+        print "GradientBoostingClassifier roc_auc:", GBC_roc_auc
+        print "LogisticRegression roc_auc:", LR_roc_auc
+        print "AdaBoostClassifier roc_auc:", ADA_roc_auc
 
-		print "pickling..."
-		pickle.dump( roc_aucs, open( "roc_auc"+str(move_number)+".pkl", "wb" ) )
-		pickle.dump( models, open( "models"+str(move_number)+".pkl", "wb" ) )
-		print "pickling complete", move_number
-#build_models(20,26)
+        roc_aucs = [RFC_roc_auc, GBC_roc_auc, LR_roc_auc, ADA_roc_auc]
+        models = [RFC_model, GBC_model, LR_model, ADA_model]
 
+        print "pickling..."
+        pickle.dump( roc_aucs, open( "roc_auc"+str(move_number)+".pkl", "wb" ) )
+        pickle.dump( models, open( "models"+str(move_number)+".pkl", "wb" ) )
+        print "pickling complete", move_number
+        
 def unpickle_models(a,b):
     print "unpickling models", a, "to", b
     m = []
@@ -224,11 +224,10 @@ def model_predict(npboard, move_number):
     '''
     takes an npboard array and a move number and returns the likelyhood of white winning
     '''
-    a = models[move_number][0].predict(npboard)[0]
-    b = models[move_number][1].predict(npboard)[0] 
-    c = models[move_number][2].predict(npboard)[0]
-    d = models[move_number][3].predict(npboard)[0] 
-    predictions = np.array([a,b,c,d])
+    a = []
+    for i in range(len(models[move_number])):
+        a.append(models[move_number][i].predict(npboard)[0])
+    predictions = np.array(a)
     roc_auc_sum = np.sum( roc_auc[move_number] )
     print roc_auc_sum
     auc_scaled = np.sum(predictions * roc_auc[move_number]) / (roc_auc_sum)
@@ -309,6 +308,6 @@ def game_path_to_stats_board(move_count, game_path = "/home/birdmw/Desktop/final
             pass
     return np.round(np.array(stats_board_if_b_plays),2), np.round(np.array(stats_board_if_w_plays),2)
 
-models, roc_auc = unpickle_models(1,3)
-print game_path_to_stats_board(move_count =1)
-
+#build_models(1,10)
+#models, roc_auc = unpickle_models(1,5)
+#print game_path_to_stats_board(move_count =1)

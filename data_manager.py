@@ -9,6 +9,7 @@ from gomill import sgf, sgf_moves
 from gomill.boards import Board
 from copy import deepcopy
 from time import time
+import os
 
 class data_manager(object):
 	def __init__(self):
@@ -143,7 +144,7 @@ class data_manager(object):
 			print "move number", move_number, "of", end_move-1
 			train, test= [], []
 			for path in path_list[:games_to_load]:
-				data_type = 'train' if random() >= .2 else 'test'
+				data_type = 'train' if random() >= .1 else 'test'
 				with open(path) as p:
 					try:	
 						if (game_count % 500) == 0:
@@ -176,7 +177,7 @@ class data_manager(object):
 
 	def build_popularity_boards(self, games_to_load = -1, base_path = "/home/birdmw/Desktop/final_project/"):
 		self.popularity_boards = []
-		for i in range(361):
+		for i in range(362):
 			self.popularity_boards.append([0]*len(self.columns)) 
 		path_list = self.build_recursive_dir_tree(base_path)
 		for path in path_list[:games_to_load]:
@@ -185,14 +186,17 @@ class data_manager(object):
 					game_string = p.read()
 					sgf_game = sgf.Sgf_game.from_string(game_string)
 					board = sgf_moves.get_setup_and_moves(sgf_game, Board(sgf_game.get_size()))
-					if board[1][0][0] == 'b':
+					if board[1][0][0] == 'b': # no handicap
 						for i in range(len(board[1])):
 							location = board[1][i][1]
 							if location != None:
 								npb_index = self.location_to_npboard_index(location)
-								self.popularity_boards[i][ npb_index ] += 1
+								for j in range(i,362):
+									self.popularity_boards[j][ npb_index ] += 1
+					else:
+						os.remove(path)
 			except:
-				pass
+				os.remove(path)
 		for pb in self.popularity_boards:
 			sumVal = sum(pb)
 			for loc in range(len(pb)):
@@ -204,3 +208,12 @@ class data_manager(object):
 
 	def load_popularity_boards(self):
 		self.popularity_boards = pickle.load( open( "popularity_boards.pkl", "rb" ))
+
+	def npboard_to_gomillboard(self):
+		pass
+
+	def millboard_to_sgf_string(self):
+		pass
+
+	def sgf_string_to_sgf_file(self):
+		pass
