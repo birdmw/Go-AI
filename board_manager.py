@@ -1,40 +1,162 @@
-from data_manager import data_manager
-class board_manager(object):
-	def __init__(self):
-		self.data_manager = data_manager()
-		self.properties = self.data_manager.properties
-		self.columns = self.data_manager.columns
-	
-	def path_to_npboard(self, move_number, game_path = "/home/birdmw/Desktop/final_project/pro_SGFs/1997/7/ChangHao-LeeChangho22917.sgf"):
-		npboard = None
-		with open(game_path) as p:
-			game_string = p.read()
-			npboard = self.data_manager.game_string_to_npboard(game_string, move_number)
-		return npboard
+import data_manager
+import model_manager
+import numpy as np
+import argparse
+import sys
+from go import Board, BoardError, View, clear, getch
 
-	def npboard_to_stats_board(self, npboard, move_number):
-		stats_board = [0.5]*361
-		next_move_number = move_number + 1
-		next_color = 1. if next_move_number % 2 == 0 else 0.
+def main():
+    # Get arguments
+    parser = argparse.ArgumentParser(description='Starts a game of go in the terminal.')
+    parser.add_argument('-s', '--size', type=int, default=19, help='size of board')
 
-		for location in npboard:
-			if location == .5:
-			    location = next_color
-			    stats_board[i] = self.data_manager.evaluate_position(npboard, next_move_number)
-			    location = .5
-			else:
-			    pass
-		return stats_board
+    args = parser.parse_args()
 
-	def npboard_to_board(self, npboard):
-	    board = Board(19)
-	    w_moves = self.columns[npboard==1.]
-	    b_moves = self.columns[npboard==0.]
-	    for w in w_moves:
-	        board.play(w[0],w[1],'w')
-	    for b in b_moves:
-	        board.play(b[0],b[1],'b') 
-	    return board 
+    if args.size < 7 or args.size > 19:
+        sys.stdout.write('Board size must be between 7 and 19!\n')
+        sys.exit(0)
 
-	def top_moves_by_model(self, move_number):
-		pass
+    # Initialize board and view
+    board = Board(args.size)
+    view = View(board)
+    err = None
+    global move_count, prev_move_count, dm, mm, npboard, pred
+    pred = (1,1)
+    dm = data_manager.data_manager()
+    dm.load_popularity_boards()
+    mm = model_manager.model_manager()
+    mm.load_many_models(1,8)
+    move_count = 0
+    prev_move_count = move_count
+
+    #actions
+
+    def goboard_to_npboard(goboard):
+        global move_count
+    	goboard_np = np.array(goboard)
+        goboard_array = []
+        for i in range(19):
+            goboard_array.append([.5]*19)
+        i,j=0,0
+        for row in goboard:
+            if j >18:
+                j=0
+            for col in row:
+                if i >18:
+                    i=0
+                if col._type == 'white':
+                    goboard_array[i][j] = 1.0
+                elif col._type == 'black':
+                    goboard_array[i][j] = 0.0
+                else:
+                    goboard_array[i][j] = 0.5
+                i+=1
+            j+=1
+        for i in range(len(goboard_array)):
+            goboard_array[i] = goboard_array[i][::-1]
+        goboard_array = np.array(goboard_array).T
+        return np.concatenate(goboard_array)
+    	#return npboard
+    
+    def cpu_play():
+        global mm, move_count, npboard
+        global pred
+        if move_count > 0:
+            if (move_count % 2) == 0:
+                color = 'b'
+            else:
+                color = 'w'
+            predictions = mm.guess_list(npboard, move_count, dm)
+            x, y = predictions[0]
+            pred = predictions[0]
+            move = (y+1, 18-x+1)
+            board.move(move[0], move[1])
+            view.redraw()
+
+    def move():
+        """
+        Makes a move at the current position of the cursor for the current
+        turn.
+        """
+        board.move(*view.cursor)
+        view.redraw()
+
+    def undo():
+        """
+        Undoes the last move.
+        """
+        board.undo()
+        view.redraw()
+
+    def redo():
+        """
+        Redoes an undone move.
+        """
+        board.redo()
+        view.redraw()
+
+    def exit():
+        """
+        Exits the game.
+        """
+        sys.exit(0)
+
+    # Action keymap
+    KEYS = {
+        'w': view.cursor_up,
+        's': view.cursor_down,
+        'a': view.cursor_left,
+        'd': view.cursor_right,
+        ' ': move,
+        'u': undo,
+        'r': redo,
+        'c': cpu_play,
+        '\x1b': exit,
+    }
+
+    # Main loop
+    while True:
+        clear()
+        global pred
+        sys.stdout.write('{0}\n'.format(view))
+        print "move #:", move_count
+        sys.stdout.write('Black: {black} <===> White: {white}\n'.format(**board.score))
+        sys.stdout.write('{0}\'s prediction '.format(pred))
+        sys.stdout.write('{0}\'s move... '.format(board.turn))
+        if err:
+            sys.stdout.write('\n' + err + '\n')
+            err = None
+
+        # Get action key
+        c = getch()
+        global move_count, prev_move_count
+        change_flag = 0
+        try:
+            # Execute selected action
+            KEYS[c]()
+            prev_move_count = move_count
+            if c == ' ' or c == 'r' or c == 'c':
+                move_count += 1
+                change_flag = 1 
+            elif c == 'u':
+                move_count = max( [0, move_count-1] )
+                change_flag = 1 
+
+        except BoardError as be:
+            # Board error (move on top of other piece, suicidal move, etc.)
+            if change_flag == 1:
+                move_count = prev_move_count
+            change_flag = 1 
+            err = be.message
+        except KeyError:
+            # Action not found, do nothing
+            pass
+        if change_flag == 1: # update global npboard
+            global npboard
+            npboard = goboard_to_npboard(board._state.board)
+            #print board._state.board
+            #print npboard
+
+
+if __name__ == '__main__':
+	main()

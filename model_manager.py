@@ -9,16 +9,28 @@ class model_manager(object):
 		self.models = {}
 
 	def build_model(self, move_number):
+		symmetry = 0
 		X_train, y_train, X_test, y_test = self.load_data(move_number)
-		model = RandomForestClassifier(verbose = 2, n_estimators = 100, n_jobs = -1)
-		#model = GradientBoostingClassifier()
-		nnet_layers = [Layer("Maxout", units=100, pieces=2), Layer('Softmax')]
-		model = Classifier(layers=nnet_layers, learning_rate=0.001, n_iter=25)
-
-		#model = model.fit(X_train, y_train.astype(int))
+		#model = RandomForestClassifier(verbose = 2, n_estimators = 361, n_jobs = -1)
+		model = GradientBoostingClassifier(learning_rate = 0.01, n_estimators = 361, max_depth=12, verbose = 2)
+		#nnet_layers = [Layer("Rectifier", units=361, pieces=2), Layer('Softmax')]
+		#model = Classifier(layers=nnet_layers, learning_rate=0.001, n_iter=25)
+		if symmetry == 1:
+			train_length = X_train.shape[0]
+			for i in xrange(train_length):
+				if i%100==0:
+					print i
+				x = X_train[i].reshape(19,19)
+				for j in xrange(1,3):
+					m_rot = np.rot90(x, j).reshape(361,)
+					np.append(X_train, m_rot)
+					np.append(y_train, y_train[i])
+		print "beginning training on", len(X_train), "items"
+		model = model.fit(X_train, y_train.astype(int))
 		model.verbose = 0
 		pickle.dump( model, open( "model"+str(move_number)+".pkl", "wb" ))
 		#self.models[move_number] = RFC_model
+		del X_train, y_train, X_test, y_test
 		print "==========="+str(move_number)+" COMPLETE==========="
 
 	def build_many_models(self, start, end):
