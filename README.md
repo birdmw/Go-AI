@@ -101,4 +101,8 @@ use 'U' and 'R' to undo and redo moves.
 
 Results:
 
-As of this version (V1.0) there is no Joseki pruning so it plays poorly. 
+As of this version (V1.0) there is no Joseki pruning so it plays poorly from a technical perspective, however you will notice that the Fuseki decisions are sometimes surprisingly thoughtful and creative. 
+
+Next:
+
+For the next version we will incorporate joseki pruning, as well as lookahead for quality moves. This should create a much more formitable AI.
