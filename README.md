@@ -1,4 +1,4 @@
-# Go-AI
+# Go-AI V1.0
 A depth-sliced learning program for playing Go
 
 This project is composed of three important files:
@@ -77,3 +77,6 @@ If you want the computer to play, simply press 'c'. The computer will think for 
 
 use 'U' and 'R' to undo and redo moves.
 
+Results:
+
+As of this version (V1.0) there is no Joseki pruning so it plays poorly. 

@@ -21,6 +21,7 @@ class data_manager(object):
 		self.universal_columns = sorted(self.properties.keys()) + sorted(self.locations.keys())
 		self.prop_list = self.universal_columns[:6]
 		self.columns = self.universal_columns[6:]
+		self.default_path = "/home/birdmw/Desktop/final_project/"
 	
 	def select_files(self, root, files):
 		selected_files = []
@@ -136,7 +137,9 @@ class data_manager(object):
 
 		return X_train, y_train, X_test, y_test
 
-	def build_game_data(self, start_move, end_move, games_to_load = -1, base_path = "/home/birdmw/Desktop/final_project/"):
+	def build_game_data(self, start_move, end_move, games_to_load = -1, base_path = None, symmetry = 0):
+		if base_path == None:
+			base_path = self.default_path
 		path_list = self.build_recursive_dir_tree(base_path)
 		total_games = len(path_list[:games_to_load]) * (end_move-start_move)
 		start_time, time_left, game_count = time(), 0, 1
@@ -165,6 +168,16 @@ class data_manager(object):
 						pass
 					game_count += 1
 			X_train, y_train, X_test, y_test = self.process_train_test_data(train, test)
+			if symmetry == 1:
+				train_length = X_train.shape[0]
+				for i in xrange(train_length):
+					if i%1000==0:
+						print i
+					x = X_train[i].reshape(19,19)
+					for j in xrange(1,3):
+						m_rot = np.rot90(x, j).reshape(361,)
+						np.append(X_train, m_rot)
+						np.append(y_train, y_train[i])
 			pickle.dump( X_train, open( "X_train"+str(move_number)+".pkl", "wb" ) )
 			pickle.dump(  y_train, open( "y_train" +str(move_number)+".pkl", "wb" ) )
 			pickle.dump( X_test, open( "X_test"+str(move_number)+".pkl", "wb" ) )
@@ -191,8 +204,7 @@ class data_manager(object):
 							location = board[1][i][1]
 							if location != None:
 								npb_index = self.location_to_npboard_index(location)
-								for j in range(i,362):
-									self.popularity_boards[j][ npb_index ] += 1
+								self.popularity_boards[i][ npb_index ] += 1
 					else:
 						os.remove(path)
 			except:

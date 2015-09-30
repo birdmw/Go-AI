@@ -5,7 +5,7 @@ import argparse
 import sys
 from go import Board, BoardError, View, clear, getch
 
-def main():
+def main(moves_to_play = 3):
     # Get arguments
     parser = argparse.ArgumentParser(description='Starts a game of go in the terminal.')
     parser.add_argument('-s', '--size', type=int, default=19, help='size of board')
@@ -25,9 +25,9 @@ def main():
     dm = data_manager.data_manager()
     dm.load_popularity_boards()
     mm = model_manager.model_manager()
-    mm.load_many_models(1,8)
+    mm.load_many_models(1,moves_to_play)
     move_count = 0
-    prev_move_count = move_count
+    prev_move_count = move_count 
 
     #actions
 
@@ -122,6 +122,7 @@ def main():
         print "move #:", move_count
         sys.stdout.write('Black: {black} <===> White: {white}\n'.format(**board.score))
         sys.stdout.write('{0}\'s prediction '.format(pred))
+        sys.stdout.write('{0}\'s '.format(mm.most_popular_moves))
         sys.stdout.write('{0}\'s move... '.format(board.turn))
         if err:
             sys.stdout.write('\n' + err + '\n')
