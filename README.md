@@ -48,27 +48,49 @@ Play:
 Your terminal should launch an ascii interface as follows: 
 
 X . . . . . . . . . . . . . . . . . .
+
 . . . . . . . . . . . . . . . . . . .
+
 . . . . . . . . . . . . . . . . . . .
+
 . . . + . . . . . + . . . . . + . . .
+
 . . . . . . . . . . . . . . . . . . .
+
 . . . . . . . . . . . . . . . . . . .
+
 . . . . . . . . . . . . . . . . . . .
+
 . . . . . . . . . . . . . . . . . . .
+
 . . . . . . . . . . . . . . . . . . .
+
 . . . + . . . . . + . . . . . + . . .
+
 . . . . . . . . . . . . . . . . . . .
+
 . . . . . . . . . . . . . . . . . . .
+
 . . . . . . . . . . . . . . . . . . .
+
 . . . . . . . . . . . . . . . . . . .
+
 . . . . . . . . . . . . . . . . . . .
+
 . . . + . . . . . + . . . . . + . . .
+
 . . . . . . . . . . . . . . . . . . .
+
 . . . . . . . . . . . . . . . . . . .
+
 . . . . . . . . . . . . . . . . . . .
+
 move #: 0
+
 Black: 0 <===> White: 0
+
 (1, 1)'s prediction None's Black's move... 
+
 
 
 Use W-A-S-D to move your cursor 'X' around the board. Space bar places a stone, colors should alternate between white and black.
