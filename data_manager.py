@@ -1,3 +1,9 @@
+# Author: Matthew Bird <birdmw@gmail.com> (main author)
+#
+#
+
+"""Collection of tools for manipulating and converting SGF GO files"""
+
 import re
 import numpy as np
 import pandas as pd
@@ -12,6 +18,8 @@ from time import time
 import os
 
 class data_manager(object):
+	"""Base class for translating SGF files"""
+
 	def __init__(self):
 		self.properties = {'BR':'Black Rank', 'HA':'Handicap', 'KM':'Komi','RE':'Result', 'SZ':'Size', 'WR':'White Rank'}
 		self.locations = {}
@@ -23,23 +31,25 @@ class data_manager(object):
 		self.columns = self.universal_columns[6:]
 		self.default_path = "/home/birdmw/Desktop/final_project/"
 	
-	def select_files(self, root, files):
+	def select_files(self, root, files, type=".sgf"):
+		"""Collect file names from root as type .sgf"""
 		selected_files = []
 		for file in files:
 			full_path = join(root, file)
 			ext = splitext(file)[1]
-			if ext == ".sgf":
+			if ext == type:
 				selected_files.append(full_path)
 		return selected_files
 
 	def build_recursive_dir_tree(self, path):
+		"""Recursively builds a directory tree from a given path"""
 		selected_files = []
-
 		for root, dirs, files in walk(path):
 			selected_files += self.select_files(root, files)
 		return selected_files
 
 	def get_properties(self, game_string):
+		"""Given an SGF string, extract and return dictionary of meta-data"""
 		split_data = game_string.split(';')
 		game_info = split_data[1].strip()
 		game_data = np.char.strip( np.array(game_string[2:]), chars='\n\r\t)')
@@ -53,6 +63,7 @@ class data_manager(object):
 		return prop_dict
 
 	def get_more_properties(self, properties, sgf_game):
+		"""Optional extension for extracing more meta-data"""
 		properties['SZ'] = sgf_game.get_size()
 		if pd.isnull(properties['SZ']):
 			properties['SZ'] = 19
@@ -68,6 +79,7 @@ class data_manager(object):
 		return properties
 
 	def game_path_to_npboard(self, move_number, game_path=None):
+		"""Convert a file located at game_path to type npboard"""
 		if game_path == None:
 			game_path = "/home/birdmw/Desktop/final_project/pro_SGFs/1997/7/ChangHao-LeeChangho22917.sgf"
 		game_string = ''
@@ -86,6 +98,7 @@ class data_manager(object):
 		return npboard
 
 	def game_string_to_npboard(self, game_string, move_number):
+		"""Convert a game string into an npboard"""
 		sgf_game = sgf.Sgf_game.from_string(game_string)
 		properties = self.get_properties(game_string)
 		properties = self.get_more_properties(properties, sgf_game)
@@ -107,6 +120,7 @@ class data_manager(object):
 		return npboard
 
 	def process_train_test_data(self, train, test):
+		"""Take train test data and convert it into a useable form"""
 		X_train = np.array(train)[:,6:]
 		X_test = np.array(test)[:,6:]
 		y_train = np.array(train)[:,self.prop_list.index('RE')]
@@ -138,6 +152,7 @@ class data_manager(object):
 		return X_train, y_train, X_test, y_test
 
 	def build_game_data(self, start_move, end_move, games_to_load = -1, base_path = None, symmetry = 0):
+		"""accepts a range of moves and slices SGF files from base_path into npboard pickled objects"""
 		if base_path == None:
 			base_path = self.default_path
 		path_list = self.build_recursive_dir_tree(base_path)
@@ -186,6 +201,7 @@ class data_manager(object):
 		print "===========COMPLETE==========="
 
 	def location_to_npboard_index(self, location):
+		"""find the index of a board location (#,#)"""
 		return self.columns.index(location)
 
 	def build_popularity_boards(self, games_to_load = -1, base_path = "/home/birdmw/Desktop/final_project/"):
@@ -219,6 +235,7 @@ class data_manager(object):
 		return self.popularity_boards
 
 	def load_popularity_boards(self):
+		"""unpickle and store a board that contains popularity of move location"""
 		self.popularity_boards = pickle.load( open( "popularity_boards.pkl", "rb" ))
 
 	def npboard_to_gomillboard(self):

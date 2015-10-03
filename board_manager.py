@@ -1,3 +1,14 @@
+# Author: Matthew Bird <birdmw@gmail.com> (main author)
+#
+#
+
+"""An interactive board game environment for playing Go and playing against the computer"""
+
+### USE: W, A, S, D to manipulate cursor
+### USE: C to have the computer play a move (models must be loaded)
+### USE: space-bar to play a move
+
+
 import data_manager
 import model_manager
 import numpy as np
